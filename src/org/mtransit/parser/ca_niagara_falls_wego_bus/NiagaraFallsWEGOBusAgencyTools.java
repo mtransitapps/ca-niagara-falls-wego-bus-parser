@@ -1,5 +1,6 @@
 package org.mtransit.parser.ca_niagara_falls_wego_bus;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -178,7 +179,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 						.addTripSort(
 								MDirectionType.NORTH.intValue(), //
 								Arrays.asList(new String[] { "WEGO_SUM_65", "WEGO_SUM_74", "WEGO_SUM_75", "WEGO_SUM_76", "WEGO_SUM_77", "WEGO_SUM_78",
-										"WEGO_SUM_79", "WEGO_SUM_80", "WEGO_SUM_90", "WEGO_SUM_91", "WEGO_SUM_92", "WEGO_SUM_286" })) //
+										"WEGO_SUM_79", "WEGO_SUM_80", "WEGO_SUM_90", "WEGO_SUM_91", "WEGO_SUM_92", "WEGO_SUM_93", "WEGO_SUM_286" })) //
 						.addTripSort(
 								MDirectionType.SOUTH.intValue(), //
 								Arrays.asList(new String[] { "WEGO_SUM_93", "WEGO_SUM_92", "WEGO_SUM_94", "WEGO_SUM_91", "WEGO_SUM_95", "WEGO_SUM_80",
@@ -222,7 +223,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	}
 
 	@Override
-	public HashSet<MTrip> splitTrip(MRoute mRoute, GTrip gTrip, GSpec gtfs) {
+	public ArrayList<MTrip> splitTrip(MRoute mRoute, GTrip gTrip, GSpec gtfs) {
 		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.id)) {
 			return ALL_ROUTE_TRIPS2.get(mRoute.id).getAllTrips();
 		}
@@ -232,7 +233,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	}
 
 	@Override
-	public Pair<Long[], Integer[]> splitTripStop(MRoute mRoute, GTrip gTrip, GTripStop gTripStop, HashSet<MTrip> splitTrips, GSpec routeGTFS) {
+	public Pair<Long[], Integer[]> splitTripStop(MRoute mRoute, GTrip gTrip, GTripStop gTripStop, ArrayList<MTrip> splitTrips, GSpec routeGTFS) {
 		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.id)) {
 			RouteTripSpec rts = ALL_ROUTE_TRIPS2.get(mRoute.id);
 			return SplitUtils.splitTripStop(mRoute, gTrip, gTripStop, routeGTFS, //
