@@ -82,7 +82,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public boolean excludeRoute(GRoute gRoute) {
-		if (!gRoute.agency_id.startsWith(WEGO)) {
+		if (!gRoute.getAgencyId().startsWith(WEGO)) {
 			return true;
 		}
 		return super.excludeRoute(gRoute);
@@ -95,7 +95,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public long getRouteId(GRoute gRoute) {
-		Matcher matcher = DIGITS.matcher(gRoute.route_id);
+		Matcher matcher = DIGITS.matcher(gRoute.getRouteId());
 		matcher.find();
 		return Long.parseLong(matcher.group());
 	}
@@ -120,15 +120,15 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public String getRouteLongName(GRoute gRoute) {
-		if (RNS_BLUE.equals(gRoute.route_short_name)) {
+		if (RNS_BLUE.equals(gRoute.getRouteShortName())) {
 			return FALLSVIEW_CLIFTON_HL;
-		} else if (RSN_GREEN.equals(gRoute.route_short_name)) {
+		} else if (RSN_GREEN.equals(gRoute.getRouteShortName())) {
 			return NIAGARA_PKS;
-		} else if (RSN_ORANGE.equals(gRoute.route_short_name)) {
+		} else if (RSN_ORANGE.equals(gRoute.getRouteShortName())) {
 			return NOTL_SHUTTLE;
-		} else if (RSN_PURPLE.equals(gRoute.route_short_name) || RSN_PRPLE.equals(gRoute.route_short_name)) {
+		} else if (RSN_PURPLE.equals(gRoute.getRouteShortName()) || RSN_PRPLE.equals(gRoute.getRouteShortName())) {
 			return DOWNTOWN;
-		} else if (RSN_RED.equals(gRoute.route_short_name)) {
+		} else if (RSN_RED.equals(gRoute.getRouteShortName())) {
 			return LUNDY_S_LN;
 		}
 		System.out.printf("\nUnexpected route long name for %s!\n", gRoute);
@@ -152,15 +152,15 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public String getRouteColor(GRoute gRoute) {
-		if (RNS_BLUE.equals(gRoute.route_short_name)) {
+		if (RNS_BLUE.equals(gRoute.getRouteShortName())) {
 			return COLOR_5484CC;
-		} else if (RSN_GREEN.equals(gRoute.route_short_name)) {
+		} else if (RSN_GREEN.equals(gRoute.getRouteShortName())) {
 			return COLOR_45BA67;
-		} else if (RSN_ORANGE.equals(gRoute.route_short_name)) {
+		} else if (RSN_ORANGE.equals(gRoute.getRouteShortName())) {
 			return null; // same as agency
-		} else if (RSN_PURPLE.equals(gRoute.route_short_name) || RSN_PRPLE.equals(gRoute.route_short_name)) {
+		} else if (RSN_PURPLE.equals(gRoute.getRouteShortName()) || RSN_PRPLE.equals(gRoute.getRouteShortName())) {
 			return COLOR_7040A4;
-		} else if (RSN_RED.equals(gRoute.route_short_name)) {
+		} else if (RSN_RED.equals(gRoute.getRouteShortName())) {
 			return COLOR_EE1E23;
 		}
 		System.out.printf("\nUnexpected route long name for %s!\n", gRoute);
@@ -235,15 +235,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public Pair<Long[], Integer[]> splitTripStop(MRoute mRoute, GTrip gTrip, GTripStop gTripStop, ArrayList<MTrip> splitTrips, GSpec routeGTFS) {
 		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.id)) {
-			RouteTripSpec rts = ALL_ROUTE_TRIPS2.get(mRoute.id);
-			return SplitUtils.splitTripStop(mRoute, gTrip, gTripStop, routeGTFS, //
-					rts.getBeforeAfterStopIds(0), //
-					rts.getBeforeAfterStopIds(1), //
-					rts.getBeforeAfterBothStopIds(0), //
-					rts.getBeforeAfterBothStopIds(1), //
-					rts.getTripId(0), //
-					rts.getTripId(1), //
-					rts.getAllBeforeAfterStopIds());
+			return SplitUtils.splitTripStop(mRoute, gTrip, gTripStop, routeGTFS, ALL_ROUTE_TRIPS2.get(mRoute.id));
 		}
 		System.out.printf("\n%s: Unexptected split trip stop route!\n", mRoute.id);
 		System.exit(-1);
@@ -284,7 +276,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public String getStopCode(GStop gStop) {
-		String stopCode = STOP_CODES.get(gStop.stop_id);
+		String stopCode = STOP_CODES.get(gStop.getStopId());
 		if (stopCode != null) {
 			return stopCode;
 		}
@@ -295,10 +287,10 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public int getStopId(GStop gStop) {
-		if (Utils.isDigitsOnly(gStop.stop_code)) {
-			return Integer.parseInt(gStop.stop_code); // use stop code as stop ID
+		if (Utils.isDigitsOnly(gStop.getStopCode())) {
+			return Integer.parseInt(gStop.getStopCode()); // use stop code as stop ID
 		}
-		Matcher matcher = DIGITS.matcher(gStop.stop_id);
+		Matcher matcher = DIGITS.matcher(gStop.getStopId());
 		matcher.find();
 		return 100000 + Integer.parseInt(matcher.group());
 	}
