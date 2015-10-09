@@ -174,8 +174,8 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		map2.put(
 				300l,
 				new RouteTripSpec(300l, // Green
-						MDirectionType.NORTH.intValue(), MTrip.HEADSIGN_TYPE_DIRECTION, MDirectionType.NORTH.id, // Queenston
-						MDirectionType.SOUTH.intValue(), MTrip.HEADSIGN_TYPE_DIRECTION, MDirectionType.SOUTH.id) // Rapidsview
+						MDirectionType.NORTH.intValue(), MTrip.HEADSIGN_TYPE_DIRECTION, MDirectionType.NORTH.getId(), // Queenston
+						MDirectionType.SOUTH.intValue(), MTrip.HEADSIGN_TYPE_DIRECTION, MDirectionType.SOUTH.getId()) // Rapidsview
 						.addTripSort(
 								MDirectionType.NORTH.intValue(), //
 								Arrays.asList(new String[] { "WEGO_SUM_65", "WEGO_SUM_74", "WEGO_SUM_75", "WEGO_SUM_76", "WEGO_SUM_77", "WEGO_SUM_78",
@@ -186,24 +186,24 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 										"WEGO_SUM_140", "WEGO_SUM_81", "WEGO_SUM_86", "WEGO_SUM_34", "WEGO_SUM_96", "WEGO_SUM_65" })) //
 						.compileBothTripSort());
 		map2.put(400l, new RouteTripSpec(400l, // Blue
-				MInboundType.INBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.INBOUND.id, // Table Rock
-				MInboundType.OUTBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.OUTBOUND.id) // Convention Ctr
+				MInboundType.INBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.INBOUND.getId(), // Table Rock
+				MInboundType.OUTBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.OUTBOUND.getId()) // Convention Ctr
 				.addTripSort(MInboundType.INBOUND.intValue(), //
 						Arrays.asList(new String[] { "WEGO_SUM_248", "WEGO_SUM_67", "WEGO_SUM_252", "WEGO_SUM_245", "WEGO_SUM_34" })) //
 				.addTripSort(MInboundType.OUTBOUND.intValue(), //
 						Arrays.asList(new String[] { "WEGO_SUM_34", "WEGO_SUM_58", "WEGO_SUM_290", "WEGO_SUM_67", "WEGO_SUM_248" })) //
 				.compileBothTripSort());
 		map2.put(500l, new RouteTripSpec(500l, // Red
-				MInboundType.INBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.INBOUND.id, // Table Rock
-				MInboundType.OUTBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.OUTBOUND.id) // Lundy's Lane
+				MInboundType.INBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.INBOUND.getId(), // Table Rock
+				MInboundType.OUTBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.OUTBOUND.getId()) // Lundy's Lane
 				.addTripSort(MInboundType.INBOUND.intValue(), //
 						Arrays.asList(new String[] { "WEGO_SUM_20", "WEGO_SUM_27", "WEGO_SUM_34" })) //
 				.addTripSort(MInboundType.OUTBOUND.intValue(), //
 						Arrays.asList(new String[] { "WEGO_SUM_34", "WEGO_SUM_282", "WEGO_SUM_37", "WEGO_SUM_273", "WEGO_SUM_20" })) //
 				.compileBothTripSort());
 		map2.put(600l, new RouteTripSpec(600l, // Purple
-				MInboundType.INBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.INBOUND.id, // Table Rock
-				MInboundType.OUTBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.OUTBOUND.id) // Downtown
+				MInboundType.INBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.INBOUND.getId(), // Table Rock
+				MInboundType.OUTBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.OUTBOUND.getId()) // Downtown
 				.addTripSort(MInboundType.INBOUND.intValue(), //
 						Arrays.asList(new String[] { "WEGO_SUM_9", "WEGO_SUM_143", "WEGO_SUM_34" })) //
 				.addTripSort(MInboundType.OUTBOUND.intValue(), //
@@ -224,30 +224,30 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public ArrayList<MTrip> splitTrip(MRoute mRoute, GTrip gTrip, GSpec gtfs) {
-		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.id)) {
-			return ALL_ROUTE_TRIPS2.get(mRoute.id).getAllTrips();
+		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
+			return ALL_ROUTE_TRIPS2.get(mRoute.getId()).getAllTrips();
 		}
-		System.out.printf("\n%s: Unexpected split trip route!\n", mRoute.id);
+		System.out.printf("\n%s: Unexpected split trip route!\n", mRoute.getId());
 		System.exit(-1);
 		return null;
 	}
 
 	@Override
 	public Pair<Long[], Integer[]> splitTripStop(MRoute mRoute, GTrip gTrip, GTripStop gTripStop, ArrayList<MTrip> splitTrips, GSpec routeGTFS) {
-		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.id)) {
-			return SplitUtils.splitTripStop(mRoute, gTrip, gTripStop, routeGTFS, ALL_ROUTE_TRIPS2.get(mRoute.id));
+		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
+			return SplitUtils.splitTripStop(mRoute, gTrip, gTripStop, routeGTFS, ALL_ROUTE_TRIPS2.get(mRoute.getId()));
 		}
-		System.out.printf("\n%s: Unexptected split trip stop route!\n", mRoute.id);
+		System.out.printf("\n%s: Unexptected split trip stop route!\n", mRoute.getId());
 		System.exit(-1);
 		return null;
 	}
 
 	@Override
 	public void setTripHeadsign(MRoute mRoute, MTrip mTrip, GTrip gTrip, GSpec gtfs) {
-		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.id)) {
+		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
 			return; // split
 		}
-		System.out.printf("\n%s: Unexpected trip %s!\n", mRoute.id, gTrip);
+		System.out.printf("\n%s: Unexpected trip %s!\n", mRoute.getId(), gTrip);
 		System.exit(-1);
 	}
 
