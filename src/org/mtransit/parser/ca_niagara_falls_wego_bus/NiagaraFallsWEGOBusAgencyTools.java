@@ -31,6 +31,8 @@ import org.mtransit.parser.mt.data.MTripStop;
 
 // http://www.niagararegion.ca/government/opendata/data-set.aspx#id=32
 // http://maps-dev.niagararegion.ca/GoogleTransit/NiagaraRegionTransit.zip
+// http://maps-dev.niagararegion.ca/GoogleTransit/NiagaraRegionTransit.zip
+// https://maps-beta.niagararegion.ca/Transit/Production/NiagaraRegionTransit.zip
 public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	public static void main(String[] args) {
@@ -49,7 +51,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	public void start(String[] args) {
 		System.out.printf("\nGenerating WEGO bus data...");
 		long start = System.currentTimeMillis();
-		this.serviceIds = extractUsefulServiceIds(args, this);
+		this.serviceIds = extractUsefulServiceIds(args, this, true);
 		super.start(args);
 		System.out.printf("\nGenerating WEGO bus data... DONE in %s.\n", Utils.getPrettyDuration(System.currentTimeMillis() - start));
 	}
@@ -78,11 +80,11 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		return super.excludeTrip(gTrip);
 	}
 
-	private static final String WEGO = "WEGO";
+	private static final String WEGO = "WeGo";
 
 	@Override
 	public boolean excludeRoute(GRoute gRoute) {
-		if (!gRoute.getAgencyId().startsWith(WEGO)) {
+		if (!gRoute.getAgencyId().contains(WEGO)) {
 			return true;
 		}
 		return super.excludeRoute(gRoute);
@@ -96,22 +98,39 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public long getRouteId(GRoute gRoute) {
 		Matcher matcher = DIGITS.matcher(gRoute.getRouteId());
-		matcher.find();
-		return Long.parseLong(matcher.group());
+		if (matcher.find()) {
+			return Long.parseLong(matcher.group());
+		}
+		System.out.printf("\nUnexpected route ID for %s!\n", gRoute);
+		System.exit(-1);
+		return -1l;
 	}
 
 	@Override
 	public String getRouteShortName(GRoute gRoute) {
+		if (Utils.isDigitsOnly(gRoute.getRouteShortName())) {
+			int rsn = Integer.parseInt(gRoute.getRouteShortName());
+			switch (rsn) {
+			// @formatter:off
+			case 300: return RSN_RED; // Red
+			case 301: return RSN_BLUE; // Blue
+			case 302: return RSN_GREEN; // Green
+			// @formatter:on
+			default:
+				System.out.printf("\nUnexpected route long name for %s!\n", gRoute);
+				System.exit(-1);
+				return null;
+			}
+		}
 		return super.getRouteShortName(gRoute); // used by real-time API
 	}
 
-	private static final String DOWNTOWN = "Downtown";
 	private static final String FALLSVIEW_CLIFTON_HL = "Fallsview / Clifton Hl";
 	private static final String LUNDY_S_LN = "Lundy's Ln";
 	private static final String NIAGARA_PKS = "Niagara Pks";
 	private static final String NOTL_SHUTTLE = "NOTL Shuttle";
 
-	private static final String RNS_BLUE = "Blue";
+	private static final String RSN_BLUE = "Blue";
 	private static final String RSN_GREEN = "Green";
 	private static final String RSN_ORANGE = "Orange";
 	private static final String RSN_PRPLE = "Prple";
@@ -120,14 +139,27 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public String getRouteLongName(GRoute gRoute) {
-		if (RNS_BLUE.equals(gRoute.getRouteShortName())) {
+		// System.out.printf("\ngetRouteLongName(%s)\n", gRoute);
+		if (Utils.isDigitsOnly(gRoute.getRouteShortName())) {
+			int rsn = Integer.parseInt(gRoute.getRouteShortName());
+			switch (rsn) {
+			// @formatter:off
+			case 300: return LUNDY_S_LN; // Red
+			case 301: return FALLSVIEW_CLIFTON_HL; // Blue
+			case 302: return NIAGARA_PKS; // Green
+			// @formatter:on
+			default:
+				System.out.printf("\nUnexpected route long name for %s!\n", gRoute);
+				System.exit(-1);
+				return null;
+			}
+		}
+		if (RSN_BLUE.equals(gRoute.getRouteShortName())) {
 			return FALLSVIEW_CLIFTON_HL;
 		} else if (RSN_GREEN.equals(gRoute.getRouteShortName())) {
 			return NIAGARA_PKS;
 		} else if (RSN_ORANGE.equals(gRoute.getRouteShortName())) {
 			return NOTL_SHUTTLE;
-		} else if (RSN_PURPLE.equals(gRoute.getRouteShortName()) || RSN_PRPLE.equals(gRoute.getRouteShortName())) {
-			return DOWNTOWN;
 		} else if (RSN_RED.equals(gRoute.getRouteShortName())) {
 			return LUNDY_S_LN;
 		}
@@ -152,7 +184,21 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public String getRouteColor(GRoute gRoute) {
-		if (RNS_BLUE.equals(gRoute.getRouteShortName())) {
+		if (Utils.isDigitsOnly(gRoute.getRouteShortName())) {
+			int rsn = Integer.parseInt(gRoute.getRouteShortName());
+			switch (rsn) {
+			// @formatter:off
+			case 300: return COLOR_EE1E23; // Red
+			case 301: return COLOR_5484CC; // Blue
+			case 302: return COLOR_45BA67; // Green
+			// @formatter:on
+			default:
+				System.out.printf("\nUnexpected route color for %s!\n", gRoute);
+				System.exit(-1);
+				return null;
+			}
+		}
+		if (RSN_BLUE.equals(gRoute.getRouteShortName())) {
 			return COLOR_5484CC;
 		} else if (RSN_GREEN.equals(gRoute.getRouteShortName())) {
 			return COLOR_45BA67;
@@ -163,7 +209,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		} else if (RSN_RED.equals(gRoute.getRouteShortName())) {
 			return COLOR_EE1E23;
 		}
-		System.out.printf("\nUnexpected route long name for %s!\n", gRoute);
+		System.out.printf("\nUnexpected route color for %s!\n", gRoute);
 		System.exit(-1);
 		return null;
 	}
@@ -171,43 +217,55 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	private static HashMap<Long, RouteTripSpec> ALL_ROUTE_TRIPS2;
 	static {
 		HashMap<Long, RouteTripSpec> map2 = new HashMap<Long, RouteTripSpec>();
-		map2.put(
-				300l,
-				new RouteTripSpec(300l, // Green
-						MDirectionType.NORTH.intValue(), MTrip.HEADSIGN_TYPE_DIRECTION, MDirectionType.NORTH.getId(), // Queenston
-						MDirectionType.SOUTH.intValue(), MTrip.HEADSIGN_TYPE_DIRECTION, MDirectionType.SOUTH.getId()) // Rapidsview
-						.addTripSort(
-								MDirectionType.NORTH.intValue(), //
-								Arrays.asList(new String[] { "WEGO_SUM_65", "WEGO_SUM_74", "WEGO_SUM_75", "WEGO_SUM_76", "WEGO_SUM_77", "WEGO_SUM_78",
-										"WEGO_SUM_79", "WEGO_SUM_80", "WEGO_SUM_90", "WEGO_SUM_91", "WEGO_SUM_92", "WEGO_SUM_93", "WEGO_SUM_286" })) //
-						.addTripSort(
-								MDirectionType.SOUTH.intValue(), //
-								Arrays.asList(new String[] { "WEGO_SUM_93", "WEGO_SUM_92", "WEGO_SUM_94", "WEGO_SUM_91", "WEGO_SUM_95", "WEGO_SUM_80",
-										"WEGO_SUM_140", "WEGO_SUM_81", "WEGO_SUM_86", "WEGO_SUM_34", "WEGO_SUM_96", "WEGO_SUM_65" })) //
-						.compileBothTripSort());
-		map2.put(400l, new RouteTripSpec(400l, // Blue
+		map2.put(302l, new RouteTripSpec(302l, // Green
+				MDirectionType.NORTH.intValue(), MTrip.HEADSIGN_TYPE_DIRECTION, MDirectionType.NORTH.getId(), // Queenston
+				MDirectionType.SOUTH.intValue(), MTrip.HEADSIGN_TYPE_DIRECTION, MDirectionType.SOUTH.getId()) // Rapidsview
+				.addTripSort(MDirectionType.NORTH.intValue(), //
+						Arrays.asList(new String[] { //
+						"Stop8036", // Rapidsview North
+								"Stop8004", //
+								"Stop8021" // Butterfly Conservatory
+						})) //
+				.addTripSort(MDirectionType.SOUTH.intValue(), //
+						Arrays.asList(new String[] { //
+						"Stop8021", // Butterfly Conservatory
+								"Stop8009", //
+								"Stop8036" // Rapidsview North
+						})) //
+				.compileBothTripSort());
+		map2.put(301L, new RouteTripSpec(301L, // Blue
 				MInboundType.INBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.INBOUND.getId(), // Table Rock
 				MInboundType.OUTBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.OUTBOUND.getId()) // Convention Ctr
 				.addTripSort(MInboundType.INBOUND.intValue(), //
-						Arrays.asList(new String[] { "WEGO_SUM_248", "WEGO_SUM_67", "WEGO_SUM_252", "WEGO_SUM_245", "WEGO_SUM_34" })) //
+						Arrays.asList(new String[] { //
+						"Stop8950", // Convention Centre
+								"Stop8874", //
+								"Stop8871" // Table Rock
+						})) //
 				.addTripSort(MInboundType.OUTBOUND.intValue(), //
-						Arrays.asList(new String[] { "WEGO_SUM_34", "WEGO_SUM_58", "WEGO_SUM_290", "WEGO_SUM_67", "WEGO_SUM_248" })) //
+						Arrays.asList(new String[] { //
+						"Stop8871", // Table Rock
+								"Stop8925", //
+								"Stop8950" // Convention Centre
+						})) //
 				.compileBothTripSort());
-		map2.put(500l, new RouteTripSpec(500l, // Red
+		map2.put(300l, new RouteTripSpec(300l, // Red
 				MInboundType.INBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.INBOUND.getId(), // Table Rock
 				MInboundType.OUTBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.OUTBOUND.getId()) // Lundy's Lane
 				.addTripSort(MInboundType.INBOUND.intValue(), //
-						Arrays.asList(new String[] { "WEGO_SUM_20", "WEGO_SUM_27", "WEGO_SUM_34" })) //
+						Arrays.asList(new String[] { //
+						"Stop8882", // Lundy's Lane & Campark Turnaroun
+								"Stop8684", //
+								"Stop8014", //
+								"Stop8871" // Table Rock
+						})) //
 				.addTripSort(MInboundType.OUTBOUND.intValue(), //
-						Arrays.asList(new String[] { "WEGO_SUM_34", "WEGO_SUM_282", "WEGO_SUM_37", "WEGO_SUM_273", "WEGO_SUM_20" })) //
-				.compileBothTripSort());
-		map2.put(600l, new RouteTripSpec(600l, // Purple
-				MInboundType.INBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.INBOUND.getId(), // Table Rock
-				MInboundType.OUTBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.OUTBOUND.getId()) // Downtown
-				.addTripSort(MInboundType.INBOUND.intValue(), //
-						Arrays.asList(new String[] { "WEGO_SUM_9", "WEGO_SUM_143", "WEGO_SUM_34" })) //
-				.addTripSort(MInboundType.OUTBOUND.intValue(), //
-						Arrays.asList(new String[] { "WEGO_SUM_34", "WEGO_SUM_3", "WEGO_SUM_4", "WEGO_SUM_9" })) //
+						Arrays.asList(new String[] { //
+						"Stop8871", // Table Rock
+								"Stop8002", //
+								"Stop8881", //
+								"Stop8882" // Lundy's Lane & Campark Turnaroun
+						})) //
 				.compileBothTripSort());
 		ALL_ROUTE_TRIPS2 = map2;
 	}
@@ -280,6 +338,9 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		if (stopCode != null) {
 			return stopCode;
 		}
+		if ("0".equals(gStop.getStopCode())) {
+			return null;
+		}
 		return super.getStopCode(gStop);
 	}
 
@@ -287,11 +348,12 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public int getStopId(GStop gStop) {
-		if (Utils.isDigitsOnly(gStop.getStopCode())) {
-			return Integer.parseInt(gStop.getStopCode()); // use stop code as stop ID
-		}
 		Matcher matcher = DIGITS.matcher(gStop.getStopId());
-		matcher.find();
-		return 100000 + Integer.parseInt(matcher.group());
+		if (matcher.find()) {
+			return Integer.parseInt(matcher.group());
+		}
+		System.out.printf("\nUnexpected stop ID %s!\n", gStop);
+		System.exit(-1);
+		return -1;
 	}
 }
