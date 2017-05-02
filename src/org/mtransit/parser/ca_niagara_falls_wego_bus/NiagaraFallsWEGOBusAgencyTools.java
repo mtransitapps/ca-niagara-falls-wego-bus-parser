@@ -32,7 +32,7 @@ import org.mtransit.parser.mt.data.MTripStop;
 // http://www.niagararegion.ca/government/opendata/data-set.aspx#id=32
 // http://maps-dev.niagararegion.ca/GoogleTransit/NiagaraRegionTransit.zip
 // http://maps-dev.niagararegion.ca/GoogleTransit/NiagaraRegionTransit.zip
-// https://maps-beta.niagararegion.ca/Transit/Production/NiagaraRegionTransit.zip
+// https://www.niagararegion.ca/downloads/transit/NiagaraRegionTransit.zip
 public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	public static void main(String[] args) {
