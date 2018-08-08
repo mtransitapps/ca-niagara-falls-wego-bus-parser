@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mtransit.parser.CleanUtils;
 import org.mtransit.parser.DefaultAgencyTools;
 import org.mtransit.parser.Pair;
@@ -29,6 +30,7 @@ import org.mtransit.parser.mt.data.MRoute;
 import org.mtransit.parser.mt.data.MTrip;
 import org.mtransit.parser.mt.data.MTripStop;
 
+// https://niagaraopendata.ca/dataset/niagara-region-transit-gtfs
 // https://niagaraopendata.ca/dataset/niagara-region-transit-gtfs/resource/cc2fda23-0cab-40b7-b264-1cdb01e08fea
 // https://maps.niagararegion.ca/googletransit/NiagaraRegionTransit.zip
 public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
@@ -342,16 +344,22 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		HashMap<String, String> map = new HashMap<String, String>();
 		map.put("WEGO_SUM_284", "CD2"); // Lundy's Lane + Brookfield (North Side)
 		map.put("WEGO_SUM_290", ""); // Lundy's Lane + Brookfield (North Side)
+		map.put("MAR", ""); // Marineland (NOT in REAL-TIME API!)
 		STOP_CODES = map;
 	}
 
 	@Override
 	public String getStopCode(GStop gStop) {
-		String stopCode = STOP_CODES.get(gStop.getStopId());
-		if (stopCode != null) {
-			return stopCode;
+		String stopCode = gStop.getStopCode();
+		if ("0".equals(stopCode)) {
+			stopCode = null;
 		}
-		if ("0".equals(gStop.getStopCode())) {
+		if (StringUtils.isEmpty(stopCode)) {
+			String stopId = gStop.getStopId();
+			String stopCodeFromId = STOP_CODES.get(stopId);
+			if (stopCodeFromId != null) {
+				return stopCodeFromId;
+			}
 			return null;
 		}
 		return super.getStopCode(gStop);
