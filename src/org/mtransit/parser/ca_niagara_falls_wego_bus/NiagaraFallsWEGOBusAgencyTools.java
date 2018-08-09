@@ -348,6 +348,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		STOP_CODES = map;
 	}
 
+	// STOP CODE REQUIRED FOR REAL-TIME API
 	@Override
 	public String getStopCode(GStop gStop) {
 		String stopCode = gStop.getStopCode();
