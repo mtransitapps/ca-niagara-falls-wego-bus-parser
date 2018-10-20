@@ -102,16 +102,18 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public long getRouteId(GRoute gRoute) {
-		Matcher matcher = DIGITS.matcher(gRoute.getRouteId());
+		String routeId = gRoute.getRouteId();
+		routeId = STARTS_WITH_WEGO_A00.matcher(routeId).replaceAll(StringUtils.EMPTY);
+		Matcher matcher = DIGITS.matcher(routeId);
 		if (matcher.find()) {
 			return Long.parseLong(matcher.group());
 		}
 		if (RSN_RED.equalsIgnoreCase(gRoute.getRouteShortName())) {
-			return 300L;
+			return RID_RED;
 		} else if (RSN_BLUE.equalsIgnoreCase(gRoute.getRouteShortName())) {
-			return 301L;
+			return RID_BLUE;
 		} else if (RSN_GREEN.equalsIgnoreCase(gRoute.getRouteShortName())) {
-			return 301L;
+			return RID_GREEN;
 		}
 		System.out.printf("\nUnexpected route ID for %s!\n", gRoute);
 		System.exit(-1);
@@ -148,6 +150,10 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	private static final String RSN_PRPLE = "Prple";
 	private static final String RSN_PURPLE = "Purple";
 	private static final String RSN_RED = "Red";
+
+	private static final long RID_RED = 300L;
+	private static final long RID_BLUE = 301L;
+	private static final long RID_GREEN = 302L;
 
 	@Override
 	public String getRouteLongName(GRoute gRoute) {
@@ -228,7 +234,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	private static HashMap<Long, RouteTripSpec> ALL_ROUTE_TRIPS2;
 	static {
 		HashMap<Long, RouteTripSpec> map2 = new HashMap<Long, RouteTripSpec>();
-		map2.put(300L, new RouteTripSpec(300L, // Red
+		map2.put(RID_RED, new RouteTripSpec(RID_RED, // Red
 				MInboundType.INBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.INBOUND.getId(), // Table Rock
 				MInboundType.OUTBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.OUTBOUND.getId()) // Lundy's Lane
 				.addTripSort(MInboundType.INBOUND.intValue(), //
@@ -247,7 +253,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 								"Stop8882" // Lundy's Lane & Campark Turnaroun
 						})) //
 				.compileBothTripSort());
-		map2.put(301L, new RouteTripSpec(301L, // Blue
+		map2.put(RID_BLUE, new RouteTripSpec(RID_BLUE, // Blue
 				MInboundType.INBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.INBOUND.getId(), // Table Rock
 				MInboundType.OUTBOUND.intValue(), MTrip.HEADSIGN_TYPE_INBOUND, MInboundType.OUTBOUND.getId()) // Convention Ctr
 				.addTripSort(MInboundType.INBOUND.intValue(), //
@@ -266,7 +272,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 								"Stop8950" // != Convention Centre =>
 						})) //
 				.compileBothTripSort());
-		map2.put(302L, new RouteTripSpec(302L, // Green
+		map2.put(RID_GREEN, new RouteTripSpec(RID_GREEN, // Green
 				MDirectionType.NORTH.intValue(), MTrip.HEADSIGN_TYPE_DIRECTION, MDirectionType.NORTH.getId(), // Queenston
 				MDirectionType.SOUTH.intValue(), MTrip.HEADSIGN_TYPE_DIRECTION, MDirectionType.SOUTH.getId()) // Rapidsview
 				.addTripSort(MDirectionType.NORTH.intValue(), //
@@ -283,6 +289,12 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 						})) //
 				.compileBothTripSort());
 		ALL_ROUTE_TRIPS2 = map2;
+	}
+
+	@Override
+	public String cleanStopOriginalId(String gStopId) {
+		gStopId = STARTS_WITH_WEGO_A00.matcher(gStopId).replaceAll(StringUtils.EMPTY);
+		return gStopId;
 	}
 
 	@Override
@@ -326,7 +338,9 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public String cleanTripHeadsign(String tripHeadsign) {
-		tripHeadsign = tripHeadsign.toLowerCase(Locale.ENGLISH);
+		if (Utils.isUppercaseOnly(tripHeadsign, true, true)) {
+			tripHeadsign = tripHeadsign.toLowerCase(Locale.ENGLISH);
+		}
 		tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
 		tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 		return CleanUtils.cleanLabel(tripHeadsign);
@@ -339,43 +353,47 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		return CleanUtils.cleanLabel(gStopName);
 	}
 
-	private static final HashMap<String, String> STOP_CODES;
-	static {
-		HashMap<String, String> map = new HashMap<String, String>();
-		map.put("WEGO_SUM_284", "CD2"); // Lundy's Lane + Brookfield (North Side)
-		map.put("WEGO_SUM_290", ""); // Lundy's Lane + Brookfield (North Side)
-		map.put("MAR", ""); // Marineland (NOT in REAL-TIME API!)
-		STOP_CODES = map;
-	}
+	private static final String ZERO_0 = "0";
+
+	public static final Pattern STARTS_WITH_WEGO_A00 = Pattern.compile("((^){1}(wego\\_[A-Z]{1}[\\d]{2}(\\_)?))", Pattern.CASE_INSENSITIVE);
+	private static final Pattern PRE_STOP_ID = Pattern.compile("((^){1}(wego\\_[A-Z]{1}[\\d]{2}(\\_)?)(stop)?)", Pattern.CASE_INSENSITIVE);
 
 	// STOP CODE REQUIRED FOR REAL-TIME API
 	@Override
 	public String getStopCode(GStop gStop) {
 		String stopCode = gStop.getStopCode();
-		if ("0".equals(stopCode)) {
-			stopCode = null;
+		if (stopCode == null || stopCode.length() == 0 || ZERO_0.equals(stopCode)) {
+			stopCode = gStop.getStopId();
 		}
+		stopCode = PRE_STOP_ID.matcher(stopCode).replaceAll(StringUtils.EMPTY);
 		if (StringUtils.isEmpty(stopCode)) {
-			String stopId = gStop.getStopId();
-			String stopCodeFromId = STOP_CODES.get(stopId);
-			if (stopCodeFromId != null) {
-				return stopCodeFromId;
-			}
+			System.out.printf("\nUnexptected stop code for %s!\n", gStop);
+			System.exit(-1);
 			return null;
 		}
-		return super.getStopCode(gStop);
+		return stopCode;
 	}
 
 	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
 
 	@Override
 	public int getStopId(GStop gStop) {
-		Matcher matcher = DIGITS.matcher(gStop.getStopId());
-		if (matcher.find()) {
-			return Integer.parseInt(matcher.group());
+		String stopCode = gStop.getStopCode();
+		if (stopCode == null || stopCode.length() == 0 || ZERO_0.equals(stopCode)) {
+			stopCode = gStop.getStopId();
 		}
-		if ("MAR".equalsIgnoreCase(gStop.getStopId())) {
-			return 900000;
+		stopCode = PRE_STOP_ID.matcher(stopCode).replaceAll(StringUtils.EMPTY);
+		if (Utils.isDigitsOnly(stopCode)) {
+			return Integer.parseInt(stopCode); // using stop code as stop ID
+		}
+		if ("MAR".equalsIgnoreCase(stopCode)) {
+			return 900_000;
+		} else if ("8CD1".equalsIgnoreCase(stopCode)) {
+			return 900_001;
+		} else if ("SCT1".equalsIgnoreCase(stopCode)) {
+			return 900_002;
+		} else if ("SCT2".equalsIgnoreCase(stopCode)) {
+			return 900_003;
 		}
 		System.out.printf("\nUnexpected stop ID %s!\n", gStop);
 		System.exit(-1);
