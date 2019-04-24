@@ -85,7 +85,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		return super.excludeTrip(gTrip);
 	}
 
-	private static final String WEGO = "WeGo";
+	private static final String WEGO = "Niagara Parks Commission WeGo";
 
 	@Override
 	public boolean excludeRoute(GRoute gRoute) {
