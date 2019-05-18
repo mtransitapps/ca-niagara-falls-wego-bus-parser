@@ -24,6 +24,7 @@ import org.mtransit.parser.gtfs.data.GStop;
 import org.mtransit.parser.gtfs.data.GTrip;
 import org.mtransit.parser.gtfs.data.GTripStop;
 import org.mtransit.parser.mt.data.MAgency;
+import org.mtransit.parser.mt.data.MDirectionType;
 import org.mtransit.parser.mt.data.MRoute;
 import org.mtransit.parser.mt.data.MTrip;
 import org.mtransit.parser.mt.data.MTripStop;
@@ -86,17 +87,11 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public boolean excludeRoute(GRoute gRoute) {
-		if (isGoodEnoughAccepted()) {
-			if (!gRoute.getAgencyId().contains("Niagara Parks Commission WeGo")) {
-				return true;
-			}
-		}
-		if (gRoute.getAgencyId().contains("Niagara Falls Transit & WeGo")) {
-			if (!gRoute.getRouteLongName().startsWith("WEGO")) {
-				return true;
-			}
-		} else if (!gRoute.getAgencyId().contains("Niagara Parks Commission WeGo")) {
+		if (!gRoute.getAgencyId().contains("Niagara Falls Transit & WeGo")) {
 			return true;
+		}
+		if (!gRoute.getRouteLongName().startsWith("WEGO")) {
+			return true; // excluded
 		}
 		return super.excludeRoute(gRoute);
 	}
@@ -247,12 +242,37 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	private static HashMap<Long, RouteTripSpec> ALL_ROUTE_TRIPS2;
 	static {
 		HashMap<Long, RouteTripSpec> map2 = new HashMap<Long, RouteTripSpec>();
+		map2.put(RID_GREEN, new RouteTripSpec(RID_GREEN, // Green
+				MDirectionType.NORTH.intValue(), MTrip.HEADSIGN_TYPE_DIRECTION, MDirectionType.NORTH.getId(), // Queenston
+				MDirectionType.SOUTH.intValue(), MTrip.HEADSIGN_TYPE_DIRECTION, MDirectionType.SOUTH.getId()) // Rapidsview
+				.addTripSort(MDirectionType.NORTH.intValue(), //
+						Arrays.asList(new String[] { //
+						"13131", // RAPIDSVIEW"
+								"8006", // !=
+								"13031", // <> AERO CAR NORTH
+								"14868", // != AERIAL ADVENTURE
+								"13038", // != BUTFLY Turnaround =>
+								"8020", // != Niagara Glen
+								"13070", // != FLORAL CLOCK =>
+						})) //
+				.addTripSort(MDirectionType.SOUTH.intValue(), //
+						Arrays.asList(new String[] { //
+						"13070", // FLORAL CLOCK <=
+								"13040", // BUTTERFLY CONS
+								"13038", // BUTFLY Turnaround <=
+								"8033", // Whirlpool Golf S
+								"13032", // AERO CAR SOUTH
+								"13031", // != <> AERO CAR NORTH <=
+								"8035", // == Souvenir City
+								"13131", // RAPIDSVIEW
+						})) //
+				.compileBothTripSort());
 		ALL_ROUTE_TRIPS2 = map2;
 	}
 
 	@Override
 	public String cleanStopOriginalId(String gStopId) {
-		gStopId = STARTS_WITH_WEGO_A00.matcher(gStopId).replaceAll(StringUtils.EMPTY);
+		gStopId = PRE_STOP_ID.matcher(gStopId).replaceAll(StringUtils.EMPTY);
 		return gStopId;
 	}
 
@@ -297,6 +317,14 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 					"Garner Rd" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Garner Rd", mTrip.getHeadsignId());
+				return true;
+			}
+		} else if (mTrip.getRouteId() == RID_BLUE) {
+			if (Arrays.asList( //
+					"Marineland", //
+					"Convention Ctr" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Convention Ctr", mTrip.getHeadsignId());
 				return true;
 			}
 		}
