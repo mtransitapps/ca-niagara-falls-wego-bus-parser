@@ -87,10 +87,13 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public boolean excludeRoute(GRoute gRoute) {
-		if (!gRoute.getAgencyId().contains("Niagara Falls Transit & WeGo")) {
+		if (!gRoute.getAgencyId().contains("Niagara Parks Commission WeGo") //
+				&& !gRoute.getAgencyId().contains("Niagara Falls Transit & WeGo")) {
 			return true;
 		}
-		if (!gRoute.getRouteLongName().startsWith("WEGO")) {
+		if (!gRoute.getRouteId().contains("WEGO") //
+				&& !gRoute.getRouteLongName().contains("WEGO") //
+				&& !gRoute.getRouteLongName().equals("604 - Orange - NOTL")) {
 			return true; // excluded
 		}
 		return super.excludeRoute(gRoute);
@@ -322,6 +325,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		} else if (mTrip.getRouteId() == RID_BLUE) {
 			if (Arrays.asList( //
 					"Marineland", //
+					"Stanley Av & Convention Ctr", //
 					"Convention Ctr" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Convention Ctr", mTrip.getHeadsignId());
