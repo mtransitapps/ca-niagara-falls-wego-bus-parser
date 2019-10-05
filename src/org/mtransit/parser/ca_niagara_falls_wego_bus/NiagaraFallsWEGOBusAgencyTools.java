@@ -107,7 +107,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public long getRouteId(GRoute gRoute) {
 		String routeId = gRoute.getRouteId();
-		routeId = STARTS_WITH_WEGO_A00.matcher(routeId).replaceAll(StringUtils.EMPTY);
+		routeId = STARTS_WITH_WEGO_NF_A00.matcher(routeId).replaceAll(StringUtils.EMPTY);
 		Matcher matcher = DIGITS.matcher(routeId);
 		if (matcher.find()) {
 			return Long.parseLong(matcher.group());
@@ -275,7 +275,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public String cleanStopOriginalId(String gStopId) {
-		gStopId = PRE_STOP_ID.matcher(gStopId).replaceAll(StringUtils.EMPTY);
+		gStopId = STARTS_WITH_WEGO_NF_A00.matcher(gStopId).replaceAll(StringUtils.EMPTY);
 		return gStopId;
 	}
 
@@ -362,8 +362,8 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	private static final String ZERO_0 = "0";
 
-	public static final Pattern STARTS_WITH_WEGO_A00 = Pattern.compile("((^){1}((wego||nf)\\_[A-Z]{1}[\\d]{2}(\\_)?(stop)?))", Pattern.CASE_INSENSITIVE);
-	private static final Pattern PRE_STOP_ID = Pattern.compile("((^){1}((wego||nf)\\_[A-Z]{1}[\\d]{2}(\\_)?)(stop|sto)?)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STARTS_WITH_WEGO_NF_A00 = Pattern.compile("((^){1}((wego||nf)\\_[A-Z]{1}[\\d]{2}(\\_)?)+(stop|sto)?)",
+			Pattern.CASE_INSENSITIVE);
 
 	// STOP CODE REQUIRED FOR REAL-TIME API
 	@Override
@@ -372,7 +372,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		if (stopCode == null || stopCode.length() == 0 || ZERO_0.equals(stopCode)) {
 			stopCode = gStop.getStopId();
 		}
-		stopCode = PRE_STOP_ID.matcher(stopCode).replaceAll(StringUtils.EMPTY);
+		stopCode = STARTS_WITH_WEGO_NF_A00.matcher(stopCode).replaceAll(StringUtils.EMPTY);
 		if ("TablRock".equals(stopCode)) {
 			return "8871";
 		}
@@ -395,7 +395,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		if (stopCode == null || stopCode.length() == 0 || ZERO_0.equals(stopCode)) {
 			stopCode = gStop.getStopId();
 		}
-		stopCode = PRE_STOP_ID.matcher(stopCode).replaceAll(StringUtils.EMPTY);
+		stopCode = STARTS_WITH_WEGO_NF_A00.matcher(stopCode).replaceAll(StringUtils.EMPTY);
 		if ("TablRock".equals(stopCode)) {
 			return 8871;
 		}
