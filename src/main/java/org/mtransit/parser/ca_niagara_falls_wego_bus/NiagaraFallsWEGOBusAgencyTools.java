@@ -88,6 +88,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public boolean excludeRoute(GRoute gRoute) {
 		if (!gRoute.getAgencyId().contains("Niagara Parks Commission WeGo") //
+				&& !gRoute.getAgencyId().contains("Niagara Falls Transit & WEGO") //
 				&& !gRoute.getAgencyId().contains("Niagara Falls Transit & WeGo")) {
 			return true;
 		}
