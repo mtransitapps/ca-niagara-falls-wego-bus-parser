@@ -364,7 +364,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	private static final String ZERO_0 = "0";
 
-	private static final Pattern STARTS_WITH_WEGO_NF_A00 = Pattern.compile("((^){1}((wego||nf)\\_[A-Z]{1,3}[\\d]{2}(\\_)?)+(stop|sto)?)",
+	private static final Pattern STARTS_WITH_WEGO_NF_A00 = Pattern.compile("((^){1}((wego||nf)\\_[A-Z]{1,3}[\\d]{2,4}(\\_)?)+(stop|sto)?)",
 			Pattern.CASE_INSENSITIVE);
 
 	// STOP CODE REQUIRED FOR REAL-TIME API
