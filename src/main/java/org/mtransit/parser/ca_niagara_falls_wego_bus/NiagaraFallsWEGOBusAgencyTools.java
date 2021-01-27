@@ -19,7 +19,6 @@ import org.mtransit.parser.mt.data.MTrip;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -267,33 +266,12 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	}
 
 	@Override
+	public boolean directionFinderEnabled() {
+		return true;
+	}
+
+	@Override
 	public boolean mergeHeadsign(@NotNull MTrip mTrip, @NotNull MTrip mTripToMerge) {
-		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
-		if (mTrip.getRouteId() == RID_RED) {
-			if (Arrays.asList( //
-					"Garner Rd Expres", // <>
-					"Garner Rd" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Garner Rd", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"Lundy's Ln", //
-					"Clifton Hl - Lundy's Ln" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Clifton Hl - Lundy's Ln", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == RID_BLUE) {
-			if (Arrays.asList( //
-					"Marineland", //
-					"Stanley Av & Convention Ctr", //
-					"Convention Ctr" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Convention Ctr", mTrip.getHeadsignId());
-				return true;
-			}
-		}
 		throw new MTLog.Fatal("Unexpected trips to merge %s & %s!", mTrip, mTripToMerge);
 	}
 
