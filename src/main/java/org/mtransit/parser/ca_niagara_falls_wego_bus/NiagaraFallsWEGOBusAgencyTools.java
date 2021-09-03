@@ -1,84 +1,42 @@
 package org.mtransit.parser.ca_niagara_falls_wego_bus;
 
+import static org.mtransit.parser.StringUtils.EMPTY;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mtransit.parser.CleanUtils;
+import org.mtransit.commons.CharUtils;
+import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.StringUtils;
 import org.mtransit.parser.DefaultAgencyTools;
 import org.mtransit.parser.MTLog;
-import org.mtransit.parser.StringUtils;
-import org.mtransit.parser.Utils;
-import org.mtransit.parser.gtfs.data.GCalendar;
-import org.mtransit.parser.gtfs.data.GCalendarDate;
 import org.mtransit.parser.gtfs.data.GRoute;
-import org.mtransit.parser.gtfs.data.GSpec;
 import org.mtransit.parser.gtfs.data.GStop;
-import org.mtransit.parser.gtfs.data.GTrip;
 import org.mtransit.parser.mt.data.MAgency;
-import org.mtransit.parser.mt.data.MRoute;
-import org.mtransit.parser.mt.data.MTrip;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.mtransit.parser.StringUtils.EMPTY;
-
 // https://niagaraopendata.ca/dataset/niagara-region-transit-gtfs
 // https://niagaraopendata.ca/dataset/niagara-region-transit-gtfs/resource/cc2fda23-0cab-40b7-b264-1cdb01e08fea
 // https://maps.niagararegion.ca/googletransit/NiagaraRegionTransit.zip
+// https://niagaraopendata.ca/dataset/1a1b885e-1a86-415d-99aa-6803a2d8f178/resource/52c8cd46-d976-4d57-990f-e8018bcd27cb/download/gtfs.zip
 public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
-	public static void main(@Nullable String[] args) {
-		if (args == null || args.length == 0) {
-			args = new String[3];
-			args[0] = "input/gtfs.zip";
-			args[1] = "../../mtransitapps/ca-niagara-falls-wego-bus-android/res/raw/";
-			args[2] = ""; // files-prefix
-		}
+	public static void main(@NotNull String[] args) {
 		new NiagaraFallsWEGOBusAgencyTools().start(args);
 	}
 
-	@Nullable
-	private HashSet<Integer> serviceIdInts;
-
 	@Override
-	public void start(@NotNull String[] args) {
-		MTLog.log("Generating WEGO bus data...");
-		long start = System.currentTimeMillis();
-		this.serviceIdInts = extractUsefulServiceIdInts(args, this, true);
-		super.start(args);
-		MTLog.log("Generating WEGO bus data... DONE in %s.", Utils.getPrettyDuration(System.currentTimeMillis() - start));
+	public boolean defaultExcludeEnabled() {
+		return true;
 	}
 
+	@NotNull
 	@Override
-	public boolean excludingAll() {
-		return this.serviceIdInts != null && this.serviceIdInts.isEmpty();
-	}
-
-	@Override
-	public boolean excludeCalendar(@NotNull GCalendar gCalendar) {
-		if (this.serviceIdInts != null) {
-			return excludeUselessCalendarInt(gCalendar, this.serviceIdInts);
-		}
-		return super.excludeCalendar(gCalendar);
-	}
-
-	@Override
-	public boolean excludeCalendarDate(@NotNull GCalendarDate gCalendarDates) {
-		if (this.serviceIdInts != null) {
-			return excludeUselessCalendarDateInt(gCalendarDates, this.serviceIdInts);
-		}
-		return super.excludeCalendarDate(gCalendarDates);
-	}
-
-	@Override
-	public boolean excludeTrip(@NotNull GTrip gTrip) {
-		if (this.serviceIdInts != null) {
-			return excludeUselessTripInt(gTrip, this.serviceIdInts);
-		}
-		return super.excludeTrip(gTrip);
+	public String getAgencyName() {
+		return "WEGO";
 	}
 
 	@Override
@@ -89,19 +47,21 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 				&& !agencyId.contains("Niagara Falls Transit") //
 				&& !agencyId.contains("Niagara Falls Transit & WEGO") //
 				&& !agencyId.contains("Niagara Falls Transit & WeGo") //
-				&& !agencyId.startsWith("AllNRT_")) {
-			return true; // excluded
+				&& !agencyId.startsWith("AllNRT_")
+				&& !agencyId.equals("1")) {
+			return EXCLUDE;
 		}
-		if (agencyId.startsWith("AllNRT_")) {
+		if (agencyId.startsWith("AllNRT_")
+				|| agencyId.equals("1")) {
 			//noinspection RedundantIfStatement
 			if (!Arrays.asList(
 					"blue",
 					"green",
 					"red"
 			).contains(gRoute.getRouteShortName().toLowerCase(Locale.ENGLISH))) {
-				return true; // exclude
+				return EXCLUDE;
 			}
-			return false; // keep
+			return KEEP;
 		}
 		//noinspection deprecation
 		final String routeId = gRoute.getRouteId();
@@ -109,7 +69,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		if (!routeId.contains("WEGO") //
 				&& !routeLongName.contains("WEGO") //
 				&& !routeLongName.equals("604 - Orange - NOTL")) {
-			return true; // excluded
+			return EXCLUDE;
 		}
 		return super.excludeRoute(gRoute);
 	}
@@ -147,7 +107,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	@Nullable
 	@Override
 	public String getRouteShortName(@NotNull GRoute gRoute) {
-		if (Utils.isDigitsOnly(gRoute.getRouteShortName())) {
+		if (CharUtils.isDigitsOnly(gRoute.getRouteShortName())) {
 			int rsn = Integer.parseInt(gRoute.getRouteShortName());
 			switch (rsn) {
 			// @formatter:off
@@ -184,7 +144,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	@NotNull
 	@Override
 	public String getRouteLongName(@NotNull GRoute gRoute) {
-		if (Utils.isDigitsOnly(gRoute.getRouteShortName())) {
+		if (CharUtils.isDigitsOnly(gRoute.getRouteShortName())) {
 			int rsn = Integer.parseInt(gRoute.getRouteShortName());
 			switch (rsn) {
 			// @formatter:off
@@ -222,7 +182,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	@Nullable
 	@Override
 	public String getRouteColor(@NotNull GRoute gRoute) {
-		if (Utils.isDigitsOnly(gRoute.getRouteShortName())) {
+		if (CharUtils.isDigitsOnly(gRoute.getRouteShortName())) {
 			int rsn = Integer.parseInt(gRoute.getRouteShortName());
 			switch (rsn) {
 			// @formatter:off
@@ -258,21 +218,8 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	}
 
 	@Override
-	public void setTripHeadsign(@NotNull MRoute mRoute, @NotNull MTrip mTrip, @NotNull GTrip gTrip, @NotNull GSpec gtfs) {
-		mTrip.setHeadsignString(
-				cleanTripHeadsign(gTrip.getTripHeadsignOrDefault()),
-				gTrip.getDirectionIdOrDefault()
-		);
-	}
-
-	@Override
 	public boolean directionFinderEnabled() {
 		return true;
-	}
-
-	@Override
-	public boolean mergeHeadsign(@NotNull MTrip mTrip, @NotNull MTrip mTripToMerge) {
-		throw new MTLog.Fatal("Unexpected trips to merge %s & %s!", mTrip, mTripToMerge);
 	}
 
 	private static final Pattern STARTS_WITH_BOUNDS_SLASH = Pattern.compile("(^(.* )?(inbound|outbound)(/))", Pattern.CASE_INSENSITIVE);
@@ -356,7 +303,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		if ("TablRock".equals(stopCode)) {
 			return 8871;
 		}
-		if (Utils.isDigitsOnly(stopCode)) {
+		if (CharUtils.isDigitsOnly(stopCode)) {
 			return Integer.parseInt(stopCode); // using stop code as stop ID
 		}
 		if ("MAR".equalsIgnoreCase(stopCode)) {
