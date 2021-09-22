@@ -1,6 +1,6 @@
 package org.mtransit.parser.ca_niagara_falls_wego_bus;
 
-import static org.mtransit.parser.StringUtils.EMPTY;
+import static org.mtransit.commons.StringUtils.EMPTY;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,8 +15,8 @@ import org.mtransit.parser.gtfs.data.GStop;
 import org.mtransit.parser.mt.data.MAgency;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 // https://niagaraopendata.ca/dataset/niagara-region-transit-gtfs
@@ -26,6 +26,12 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	public static void main(@NotNull String[] args) {
 		new NiagaraFallsWEGOBusAgencyTools().start(args);
+	}
+
+	@Nullable
+	@Override
+	public List<Locale> getSupportedLanguages() {
+		return LANG_EN;
 	}
 
 	@Override
@@ -96,92 +102,34 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	}
 
 	@Override
-	public long getRouteId(@NotNull GRoute gRoute) {
-		//noinspection deprecation
-		String routeId = gRoute.getRouteId();
-		//noinspection deprecation
-		if (!gRoute.getAgencyIdOrDefault().startsWith("AllNRT_")) {
-			routeId = STARTS_WITH_WEGO_NF_A00.matcher(routeId).replaceAll(EMPTY);
-			Matcher matcher = DIGITS.matcher(routeId);
-			if (matcher.find()) {
-				return Long.parseLong(matcher.group());
-			}
-		}
-		if (RSN_RED.equalsIgnoreCase(gRoute.getRouteShortName())) {
-			return RID_RED;
-		} else if (RSN_BLUE.equalsIgnoreCase(gRoute.getRouteShortName())) {
-			return RID_BLUE;
-		} else if (RSN_GREEN.equalsIgnoreCase(gRoute.getRouteShortName())) {
-			return RID_GREEN;
-		} else if (RSN_ORANGE.equalsIgnoreCase(gRoute.getRouteShortName())) {
-			return RID_ORANGE;
-		}
-		throw new MTLog.Fatal("Unexpected route ID for %s!", gRoute);
+	public boolean defaultRouteIdEnabled() {
+		return true;
+	}
+
+	@Override
+	public boolean useRouteShortNameForRouteId() {
+		return true;
 	}
 
 	@Nullable
 	@Override
-	public String getRouteShortName(@NotNull GRoute gRoute) {
-		if (CharUtils.isDigitsOnly(gRoute.getRouteShortName())) {
-			int rsn = Integer.parseInt(gRoute.getRouteShortName());
-			switch (rsn) {
-			// @formatter:off
-			case 300: return RSN_RED; // Red
-			case 601: return RSN_RED; // Red
-			case (int) RID_BLUE: return RSN_BLUE; // Blue
-			case (int) RID_GREEN: return RSN_GREEN; // Green
-			case (int) RID_ORANGE: return RSN_ORANGE; // Orange
-			// @formatter:on
-			default:
-				throw new MTLog.Fatal("Unexpected route short name for %s!", gRoute);
-			}
+	public Long convertRouteIdFromShortNameNotSupported(@NotNull String routeShortName) {
+		switch (routeShortName) {
+		case "RED":
+			return 601L;
+		case "BLUE":
+			return 602L;
+		case "GREEN":
+			return 603L;
+		case "ORANGE":
+			return 604L;
 		}
-		return super.getRouteShortName(gRoute); // used by real-time API
+		throw new MTLog.Fatal("Unexpected route ID for short name '%s'!", routeShortName);
 	}
 
-	private static final String FALLSVIEW_CLIFTON_HL = "Fallsview / Clifton Hl";
-	private static final String LUNDY_S_LN = "Lundy's Ln";
-	private static final String NIAGARA_PKS = "Niagara Pks";
-	private static final String NOTL_SHUTTLE = "NOTL Shuttle";
-
-	private static final String RSN_BLUE = "BLUE";
-	private static final String RSN_GREEN = "GREEN";
-	private static final String RSN_ORANGE = "ORANGE";
-	private static final String RSN_PRPLE = "Prple";
-	private static final String RSN_PURPLE = "Purple";
-	private static final String RSN_RED = "RED";
-
-	private static final long RID_RED = 601L;
-	private static final long RID_BLUE = 602L;
-	private static final long RID_GREEN = 603L;
-	private static final long RID_ORANGE = 604L;
-
-	@NotNull
 	@Override
-	public String getRouteLongName(@NotNull GRoute gRoute) {
-		if (CharUtils.isDigitsOnly(gRoute.getRouteShortName())) {
-			int rsn = Integer.parseInt(gRoute.getRouteShortName());
-			switch (rsn) {
-			// @formatter:off
-			case 601: return LUNDY_S_LN; // Red
-			case (int) RID_BLUE: return FALLSVIEW_CLIFTON_HL; // Blue
-			case (int) RID_GREEN: return NIAGARA_PKS; // Green
-			case (int) RID_ORANGE: return NOTL_SHUTTLE; // Orange
-			// @formatter:on
-			default:
-				throw new MTLog.Fatal("Unexpected route long name for %s!", gRoute);
-			}
-		}
-		if (RSN_BLUE.equalsIgnoreCase(gRoute.getRouteShortName())) {
-			return FALLSVIEW_CLIFTON_HL;
-		} else if (RSN_GREEN.equalsIgnoreCase(gRoute.getRouteShortName())) {
-			return NIAGARA_PKS;
-		} else if (RSN_ORANGE.equalsIgnoreCase(gRoute.getRouteShortName())) {
-			return NOTL_SHUTTLE;
-		} else if (RSN_RED.equalsIgnoreCase(gRoute.getRouteShortName())) {
-			return LUNDY_S_LN;
-		}
-		throw new MTLog.Fatal("Unexpected route long name for %s!", gRoute);
+	public boolean defaultRouteLongNameEnabled() {
+		return true;
 	}
 
 	private static final String AGENCY_COLOR_ORANGE = "F3632A"; // ORANGE (from PDF)
@@ -201,36 +149,26 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	@Nullable
 	@Override
-	public String getRouteColor(@NotNull GRoute gRoute) {
-		if (StringUtils.isEmpty(gRoute.getRouteColor())) {
-			if (CharUtils.isDigitsOnly(gRoute.getRouteShortName())) {
-				int rsn = Integer.parseInt(gRoute.getRouteShortName());
-				switch (rsn) {
-				// @formatter:off
-				case (int) RID_RED:return "EE1E23"; // Red
-				case (int) RID_BLUE:return "5484CC"; // Blue
-				case (int) RID_GREEN:return "45BA67"; // Green
-				case (int) RID_ORANGE: return null; // same as agency // Orange
-				// @formatter:on
-				default:
-					throw new MTLog.Fatal("Unexpected route color for %s!", gRoute);
-				}
-			}
-			if (RSN_BLUE.equalsIgnoreCase(gRoute.getRouteShortName())) {
-				return "5484CC";
-			} else if (RSN_GREEN.equalsIgnoreCase(gRoute.getRouteShortName())) {
-				return "45BA67";
-			} else if (RSN_ORANGE.equalsIgnoreCase(gRoute.getRouteShortName())) {
-				return null; // same as agency
-			} else if (RSN_PURPLE.equalsIgnoreCase(gRoute.getRouteShortName())
-					|| RSN_PRPLE.equalsIgnoreCase(gRoute.getRouteShortName())) {
-				return "7040A4";
-			} else if (RSN_RED.equalsIgnoreCase(gRoute.getRouteShortName())) {
-				return "EE1E23";
-			}
-			throw new MTLog.Fatal("Unexpected route color for %s!", gRoute);
+	public String provideMissingRouteColor(@NotNull GRoute gRoute) {
+		final String rsnS = gRoute.getRouteShortName();
+		switch (rsnS) {
+		case "RED":
+		case "601":
+			return "EE1E23"; // Red
+		case "BLUE":
+		case "602":
+			return "5484CC"; // Blue
+		case "GREEN":
+		case "603":
+			return "45BA67"; // Green
+		case "ORANGE":
+		case "604":
+			return null; // same as agency // Orange
+		case "Purple":
+		case "Prple":
+			return "7040A4";
 		}
-		return super.getRouteColor(gRoute);
+		throw new MTLog.Fatal("Unexpected route color for %s!", gRoute);
 	}
 
 	@NotNull
@@ -312,8 +250,6 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		}
 		return stopCode;
 	}
-
-	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
 
 	@Override
 	public int getStopId(@NotNull GStop gStop) {
