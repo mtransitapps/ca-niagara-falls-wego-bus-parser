@@ -20,8 +20,6 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 // https://niagaraopendata.ca/dataset/niagara-region-transit-gtfs
-// https://maps.niagararegion.ca/googletransit/NiagaraRegionTransit.zip
-// https://niagaraopendata.ca/dataset/1a1b885e-1a86-415d-99aa-6803a2d8f178/resource/f7dbcaed-f31a-435e-8146-b0efff0b8eb8/download/gtfs.zip
 public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	public static void main(@NotNull String[] args) {
@@ -78,7 +76,9 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 			if (!Arrays.asList(
 					"blue",
 					"green",
-					"red"
+					"orng", // orange",
+					"red",
+					"redx"
 			).contains(gRoute.getRouteShortName().toLowerCase(Locale.ENGLISH))) {
 				return EXCLUDE;
 			}
@@ -123,6 +123,8 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 			return 603L;
 		case "ORANGE":
 			return 604L;
+		case "REDX":
+			return 605L;
 		}
 		throw new MTLog.Fatal("Unexpected route ID for short name '%s'!", routeShortName);
 	}
@@ -164,6 +166,9 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		case "ORANGE":
 		case "604":
 			return null; // same as agency // Orange
+		case "REDX":
+		case "605":
+			return "F1836C"; // Salmon
 		case "Purple":
 		case "Prple":
 			return "7040A4";
@@ -183,12 +188,21 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 		return true;
 	}
 
+	private static final Pattern STARTS_WITH_FROM_VIA_DASH = Pattern.compile("(^[^\\-]+-)", Pattern.CASE_INSENSITIVE);
+
+	@Override
+	public @NotNull String cleanDirectionHeadsign(int directionId, boolean fromStopName, @NotNull String directionHeadSign) {
+		String directionHeadsign = super.cleanDirectionHeadsign(directionId, fromStopName, directionHeadSign);
+		directionHeadsign = STARTS_WITH_FROM_VIA_DASH.matcher(directionHeadsign).replaceAll(EMPTY);
+		return directionHeadsign;
+	}
+
 	private static final Pattern STARTS_WITH_BOUNDS_SLASH = Pattern.compile("(^(.* )?(inbound|outbound)(/))", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern STARTS_WITH_RSN_ = Pattern.compile("(^[\\d]+( )?)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STARTS_WITH_RSN_ = Pattern.compile("(^\\d+( )?)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern STARTS_WITH_RLN_DASH = Pattern.compile("(^[^\\-]+-)", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern AND_NO_SPACE = Pattern.compile("(([\\S])\\s?([&@])\\s?([\\S]))", Pattern.CASE_INSENSITIVE);
+	private static final Pattern AND_NO_SPACE = Pattern.compile("((\\S)\\s?([&@])\\s?(\\S))", Pattern.CASE_INSENSITIVE);
 	private static final String AND_NO_SPACE_REPLACEMENT = "$2 $3 $4";
 
 	@NotNull
@@ -226,7 +240,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 
 	private static final String ZERO_0 = "0";
 
-	private static final Pattern STARTS_WITH_WEGO_NF_A00 = Pattern.compile("((^)((wego|nf|nft|allnrt)_[a-z]{1,3}[\\d]{2,4}(_)?)+(stop|sto)?)",
+	private static final Pattern STARTS_WITH_WEGO_NF_A00 = Pattern.compile("((^)((wego|nf|nft|allnrt)_[a-z]{1,3}\\d{2,4}(_)?)+(stop|sto)?)",
 			Pattern.CASE_INSENSITIVE);
 
 	// STOP CODE REQUIRED FOR REAL-TIME API
@@ -234,7 +248,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public String getStopCode(@NotNull GStop gStop) {
 		String stopCode = gStop.getStopCode();
-		if (stopCode.length() == 0 || ZERO_0.equals(stopCode)) {
+		if (stopCode.isEmpty() || ZERO_0.equals(stopCode)) {
 			//noinspection deprecation
 			stopCode = gStop.getStopId();
 		}
@@ -254,7 +268,7 @@ public class NiagaraFallsWEGOBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public int getStopId(@NotNull GStop gStop) {
 		String stopCode = gStop.getStopCode();
-		if (stopCode.length() == 0 || ZERO_0.equals(stopCode)) {
+		if (stopCode.isEmpty() || ZERO_0.equals(stopCode)) {
 			//noinspection deprecation
 			stopCode = gStop.getStopId();
 		}
